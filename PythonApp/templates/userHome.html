@@ -11,7 +11,39 @@
     <link href="http://getbootstrap.com/docs/3.4/assets/css/ie10-viewport-bug-workaround.css" rel="stylesheet">
     <link href="http://getbootstrap.com/docs/3.4/examples/jumbotron-narrow/jumbotron-narrow.css" rel="stylesheet">
     <script src="http://getbootstrap.com/docs/3.4/assets/js/ie-emulation-modes-warning.js"></script>
- 
+    <script type="text/javascript" src="../static/js/jquery-3.3.1.js"></script>
+    
+    <script>
+        $(function() {
+            $.ajax({
+                url: '/getWish',
+                type: 'GET',
+                success: function(res) {
+                    var div = $('<div>')
+                        .attr('class', 'list-group')
+                        .append($('<a>')
+                            .attr('class', 'list-group-item active')
+                            .append($('<h4>')
+                                .attr('class', 'list-group-item-heading'),
+                                $('<p>')
+                                .attr('class', 'list-group-item-text')));
+                    var wishObj = JSON.parse(res);
+                    var wish = '';
+
+                    $.each(wishObj, function(index, value) {
+                        wish = $(div).clone();
+                        $(wish).find('h4').text(value.Title);
+                        $(wish).find('p').text(value.Description);
+                        $('.jumbotron').append(wish);
+                    });
+                },
+                error: function(error) {
+                    console.log(error);
+                }
+            });
+        });
+
+    </script>
 </head>
  
 <body>
@@ -20,6 +52,7 @@
         <div class="header">
             <nav>
                 <ul class="nav nav-pills pull-right">
+                    <li role="presentation"><a href="/showAddWish">Add Wish</a></li>
                     <li role="presentation" class="active"><a href="/logout">Logout</a>
                     </li>
                 </ul>
@@ -28,8 +61,6 @@
         </div>
  
         <div class="jumbotron">
-            <h1>Welcome Home !!</h1>
-            
         </div>
  
  

@@ -14,3 +14,8 @@
 - 비고
    - 회원가입 이후 리다이렉트를 제대로 구현하지 않음(일단 회원가입 상태를 표현할 수 있는 공간을 생성하고(`<div class="signupStatus">{{signupStatus}}</div>`), CSS도 적용해 둠). 즉, Sign up 이후 성공 여부는 console로만 확인할 수 있음
    - 바로 '/'로 이동 시 user 세션이 아직 유지되고 있다면 userHome으로 리다이렉트 시킴
+
+## 3. 버킷리스트 추가 및 조회 기능 구현
+- [참고 사이트](https://code.tutsplus.com/tutorials/creating-a-web-app-from-scratch-using-python-flask-and-mysql-part-3--cms-23120)
+- QUERY: Make table(tbl_wish) and procedure(add and show bucket list).sql
+
