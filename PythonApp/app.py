@@ -12,8 +12,8 @@ app = Flask(__name__)
 app.secret_key = 'why would I tell you my secret key?'
 
 # MySQL configurations
-app.config['MYSQL_DATABASE_USER'] = '####'
-app.config['MYSQL_DATABASE_PASSWORD'] = '####'
+app.config['MYSQL_DATABASE_USER'] = 'root'
+app.config['MYSQL_DATABASE_PASSWORD'] = '2051'
 app.config['MYSQL_DATABASE_DB'] = 'BucketList'
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 mysql.init_app(app)
@@ -137,7 +137,7 @@ def addWish():
 				conn.commit()
 				return redirect('/userHome')
 			else:
-				return render_template('error.html',error = 'An error occurred!')
+				return render_template('error.html',error = 'An error occured!')
 		else:
 			return render_template('error.html',error = 'Unauthorized Access')
 	except Exception as e:
@@ -146,7 +146,7 @@ def addWish():
 		cursor.close()
 		conn.close()
 
-
+# 버킷리스트/버킷리스트 항목 조회
 @app.route('/getWish')
 def getWish():
 	try:
@@ -174,6 +174,80 @@ def getWish():
 			return render_template('error.html', error='Unauthorized Access')
 	except Exception as e:
 		return render_template('error.html', error = str(e))
+@app.route('/getWishById',methods=['POST'])
+def getWishById():
+	try:
+		if session.get('user'):
+			_id = request.form['id']
+			_user = session.get('user')
+
+			conn = mysql.connect()
+			cursor = conn.cursor()
+			cursor.callproc('sp_GetWishById',(_id,_user))
+			result = cursor.fetchall()
+
+			wish = []
+			wish.append({'Id': result[0][0], 'Title': result[0][1], 'Description': result[0][2]})
+
+			return json.dumps(wish)
+		else:
+			return render_template('error.html', error = 'Unauthorized Access')	
+	except Exception as e:
+		return render_template('error.html', error = str(e))
+
+# 버킷리스트 수정
+@app.route('/updateWish', methods=['POST'])
+def updateWish():
+	try:
+		if session.get('user'):
+			_user = session.get('user')
+			_title = request.form['title']
+			_description = request.form['description']
+			_wish_id = request.form['id']
+
+			conn = mysql.connect()
+			cursor = conn.cursor()
+			cursor.callproc('sp_updateWish',(_title,_description,_wish_id,_user))
+			data = cursor.fetchall()
+
+			if len(data) is 0:
+				conn.commit()
+				return json.dumps({'status':'OK'})
+			else:
+				return json.dumps({'status':'ERROR'})
+	except Exception as e:
+		return json.dumps({'status':'Unauthorized access'})
+	finally:
+			cursor.close()
+			conn.close()
+
+
+# 버킷리스트 삭제
+@app.route('/deleteWish', methods=['POST'])
+def deleteWish():
+	try:
+		if session.get('user'):
+			_id = request.form['id']
+			_user = session.get('user')
+
+			conn = mysql.connect()
+			cursor = conn.cursor()
+			cursor.callproc('sp_deleteWish',(_id,_user))
+			result = cursor.fetchall()
+
+			if len(result) is 0:
+				conn.commit()
+				return json.dumps({'status':'OK'})
+			else:
+				return json.dumps({'status':'An Error occured'})
+		else:
+			return render_template('error.html',error = 'Unauthorized Access')
+	except Exception as e:
+		return json.dumps({'status':str(e)})
+	finally:
+		cursor.close()
+		conn.close()
+
 
 
 if __name__ == "__main__":

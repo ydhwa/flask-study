@@ -19,3 +19,7 @@
 - [참고 사이트](https://code.tutsplus.com/tutorials/creating-a-web-app-from-scratch-using-python-flask-and-mysql-part-3--cms-23120)
 - QUERY: Make table(tbl_wish) and procedure(add and show bucket list).sql
 
+## 4. 버킷리스트 수정 및 삭제 기능 구현
+- [참고 사이트](https://code.tutsplus.com/tutorials/creating-a-web-app-from-scratch-using-python-flask-and-mysql-part-4--cms-23187)
+- QUERY: Make procedure(inquery, edit and delete wish item).sql
+
