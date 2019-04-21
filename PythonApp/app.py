@@ -10,6 +10,8 @@ app = Flask(__name__)
 
 # Session key
 app.secret_key = 'why would I tell you my secret key?'
+# Default pagination setting
+pageLimit = 2
 
 # MySQL configurations
 app.config['MYSQL_DATABASE_USER'] = 'root'
@@ -84,7 +86,6 @@ def validateLogin():
 
 		if len(data) > 0:
 			if check_password_hash(str(data[0][3]),_password):
-				print(data[0][0], data[0][3])
 				session['user'] = data[0][0]
 				return redirect('/userHome')
 			else:
@@ -147,20 +148,32 @@ def addWish():
 		conn.close()
 
 # 버킷리스트/버킷리스트 항목 조회
-@app.route('/getWish')
+@app.route('/getWish', methods=['POST'])
 def getWish():
 	try:
 		if session.get('user'):
 			_user = session.get('user')
+			_limit = pageLimit
+			_offset = request.form['offset']
+			_total_records = 0
 
 			# Connect to MySQL and fetch data
 			con = mysql.connect()
 			cursor = con.cursor()
-			cursor.callproc('sp_GetWishByUser',(_user,))
+			cursor.callproc('sp_GetWishByUser',(_user,_limit,_offset,_total_records))
 			wishes = cursor.fetchall()
 
+			cursor.close()
+
+			cursor = con.cursor()
+			cursor.execute('SELECT @_sp_GetWishByUser_3')
+
+			outParam = cursor.fetchall()
+
 			# JSON으로 반환하기 쉽도록 버킷리스트를 딕셔너리에 저장
+			response = []
 			wishes_dict = []
+
 			for wish in wishes:
 				wish_dict = {
 					'Id': wish[0],
@@ -169,7 +182,10 @@ def getWish():
 					'Date': wish[4]}
 				wishes_dict.append(wish_dict)
 
-			return json.dumps(wishes_dict)
+			response.append(wishes_dict)
+			response.append({'total': outParam[0][0]})
+
+			return json.dumps(response)
 		else:
 			return render_template('error.html', error='Unauthorized Access')
 	except Exception as e:
@@ -194,6 +210,7 @@ def getWishById():
 			return render_template('error.html', error = 'Unauthorized Access')	
 	except Exception as e:
 		return render_template('error.html', error = str(e))
+
 
 # 버킷리스트 수정
 @app.route('/updateWish', methods=['POST'])

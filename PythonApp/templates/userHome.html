@@ -15,7 +15,7 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script>
         $(function() {
-            GetWishes();
+            GetWishes(1);
             $('#btnUpdate').click(function() {
                 $.ajax({
                     url: '/updateWish',
@@ -28,7 +28,7 @@
                     success: function(res) {
                         $('#editModal').modal('hide');
                         // Re populate the grid
-                        GetWishes();
+                        GetWishes(1);
                     },
                     error: function(error) {
                         console.log(error);
@@ -37,15 +37,88 @@
             });
         });
         /* 버킷 리스트 조회 */
-        function GetWishes() {
+        function GetWishes(_page) {
+            _offset = (_page - 1) * 2;
             $.ajax({
                 url: '/getWish',
-                type: 'GET',
+                type: 'POST',
+                data: {
+                    offset: _offset
+                },
                 success: function(res) {
+                    var itemsPerPage = 2;
                     // Parse the JSON response
                     var wishObj = JSON.parse(res);
+
                     $('#ulist').empty();
-                    $('#listTemplate').tmpl(wishObj).appendTo('#ulist');
+                    $('#listTemplate').tmpl(wishObj[0]).appendTo('#ulist');
+                    
+                    var total = wishObj[1]['total'];
+                    var pageCount = total / itemsPerPage;
+                    var pageRem = total % itemsPerPage;
+                    if(pageRem != 0) {
+                        pageCount = Math.floor(pageCount) + 1;
+                    }
+
+                    // 요청이 반복되어 매 번 pagination을 비워줘야 함
+                    $('.pagination').empty();
+                    var pageStart = $('#hdnStart').val();
+                    var pageEnd = $('#hdnEnd').val();
+
+                    if(pageStart > 5) {
+                        var aPrev = $('<a/>').attr({
+                            'href': '#'
+                        }, {
+                            'aria-label': 'Previous'
+                        })
+                        .append($('<span/>').attr('aria-hidden', 'true').html('$laquo;'));
+                        $(aPrev).click(function() {
+                            // Previous button logic
+                            $('#hdnStart').val(Number(pageStart) - 5);
+                            $('#hdnEnd').val(Number(pageStart) - 5 + 4);
+                            GetWishes(Number(pageStart) - 5);
+                        });
+                        var prevLink = $('<li/>').append(aPrev);
+                        $('.pagination').append(prevLink);
+                    }
+
+                    // add the pages in the pagination based on the page count
+                    for(var i = Number(pageStart); i <= Number(pageEnd); i++) {
+                        if(i > pageCount) {
+                            break;
+                        }
+
+                        var aPage = $('<a/>').attr('href', '#').text(i);
+                        // Attach the page click event
+                        $(aPage).click(function(i) {
+                            // return으로 안해주면 계속 /getWish가 호출됨
+                            return function() {
+                                GetWishes(i);
+                            }
+                        }(i));
+
+                        var page = $('<li/>').append(aPage);
+
+                        // Attach the active page class
+                        if((_page) == i) {
+                            $(page).attr('class', 'active');
+                        }
+                        $('.pagination').append(page);
+                    }
+
+                    if((Number(pageStart) + 5) <= pageCount) {
+                        var nextLink = $('<li/>').append($('<a/>').attr({
+                                'href': '#'
+                            }, {
+                                'aria-label': 'Next'
+                            })
+                            .append($('<span/>').attr('aria-hidden', 'true').html('&raquo;').click(function() {
+                                $('#hdnStart').val(Number(pageStart) + 5);
+                                $('#hdnEnd').val(Number(pageStart) + 5 + 4);
+                                GetWishes(Number(pageStart) + 5);
+                            })));
+                        $('.pagination').append(nextLink);
+                    }
                 },
                 error: function(error) {
                     console.log(error);
@@ -95,7 +168,7 @@
                     var result = JSON.parse(res);
                     if(result.status == 'OK') {
                         $('#deleteModal').modal('hide');
-                        GetWishes();
+                        GetWishes(1);
                     } else {
                         alert(result.status);
                     }
@@ -161,6 +234,13 @@
                     <div class="panel-body">
                         <ul id="ulist" class="list-group">
                         </ul>
+
+                        <!-- pagination -->
+                        <nav>
+                            <ul class="pagination">
+                                <!-- Li we'll create dynamically -->
+                            </ul>
+                        </nav>
                     </div>
                 </div>
             </div>
@@ -210,6 +290,9 @@
             </div>
         </div>
 
+        <!-- send some data for pagination -->
+        <input type="hidden" id="hdnStart" value="1">
+        <input type="hidden" id="hdnEnd" value="5">
 
 
         <footer class="footer">

@@ -23,3 +23,8 @@
 - [참고 사이트](https://code.tutsplus.com/tutorials/creating-a-web-app-from-scratch-using-python-flask-and-mysql-part-4--cms-23187)
 - QUERY: Make procedure(inquery, edit and delete wish item).sql
 
+## 5. 페이지네이션 구현
+- [참고 사이트](https://code.tutsplus.com/tutorials/creating-a-web-app-from-scratch-using-python-flask-and-mysql-part-5--cms-23384)
+- QUERY: Make procedure(inquery with pagination).sql
+- 비고
+   - 참고 사이트의 쿼리에서 `DEALLOCATE PREPARE stmt1`이라는 부분이 있는데, `stmt1`은 오타임. 따라서 이를 `stmt`로 수정하였음
